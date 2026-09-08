@@ -1,0 +1,48 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Dependencies
+*.egg-info/
+dist/
+build/
+
+# Environment variables (use .env.example instead)
+.env
+.env.local
+
+# Debug scripts (not needed in production)
+debug_vendor_detection.py
+debug_vendor_detection_detailed.py
+test_dashboard_flow.py
+
+# Git and version control
+.git/
+.gitignore
+.github/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Documentation
+SWITCH_DASHBOARD.md

@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  switch-health-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: switch-health-dashboard
+    ports:
+      - "8787:8787"
+    environment:
+      SWITCH_USERNAME: ${SWITCH_USERNAME:-networks}
+      SWITCH_PASSWORD: ${SWITCH_PASSWORD:-w00Lw0rTh$}
+      SWITCH_ENABLE_SECRET: ${SWITCH_ENABLE_SECRET:-w00Lw0rTh$}
+      WEBHOOK_URL: ${WEBHOOK_URL:-}
+      SWITCH_DASHBOARD_HOST: 0.0.0.0
+      SWITCH_DASHBOARD_PORT: 8787
+      CHECK_INTERVAL_SECONDS: ${CHECK_INTERVAL_SECONDS:-30}
+    restart: unless-stopped
+    # Uncomment for network debugging
+    # networks:
+    #   - switch-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8787), timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+# Uncomment to use a custom network
+# networks:
+#   switch-network:
+#     driver: bridge

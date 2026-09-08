@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#06101a" />
+    <title>Switch Health Console - Interactive</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #06101a;
+        color: #e0e0e0;
+        line-height: 1.6;
+      }
+      .app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+      
+      /* Connection Screen */
+      .connect-screen {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #06101a 0%, #0d1b2a 100%);
+      }
+      .connect-screen.hidden, .dashboard.hidden { display: none; }
+      
+      .connect-copy {
+        text-align: center;
+        max-width: 500px;
+        margin-right: 3rem;
+      }
+      .connect-copy h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: #fff;
+      }
+      .connect-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        background: #0f1e2e;
+        padding: 2rem;
+        border-radius: 8px;
+        border: 1px solid #1a3a52;
+        min-width: 350px;
+      }
+      .connect-form input, .connect-form select {
+        padding: 0.75rem;
+        background: #061018;
+        border: 1px solid #1a3a52;
+        color: #e0e0e0;
+        border-radius: 4px;
+        font-size: 1rem;
+      }
+      .connect-form button {
+        padding: 0.75rem 1.5rem;
+        background: #00d9ff;
+        color: #000;
+        border: none;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+      .connect-form button:hover { background: #00b8d4; }
+      
+      /* Dashboard */
+      .dashboard {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        background: #06101a;
+      }
+      
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 2rem;
+        background: #0f1e2e;
+        border-bottom: 1px solid #1a3a52;
+      }
+      
+      .top-actions { display: flex; gap: 1rem; align-items: center; }
+      .poll-state {
+        padding: 0.5rem 1rem;
+        background: #1a3a52;
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
+      .poll-state.online { background: #2d5a3d; color: #7dff7d; }
+      .poll-state.alert { background: #5a2d2d; color: #ff7d7d; }
+      
+      .quiet-button {
+        padding: 0.5rem 1rem;
+        background: transparent;
+        color: #00d9ff;
+        border: 1px solid #00d9ff;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+      }
+      .quiet-button:hover { background: rgba(0, 217, 255, 0.1); }
+      
+      .device-heading {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #1a3a52;
+      }
+      .device-heading h1 { margin-bottom: 0.5rem; }
+      .vendor-lockup {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+      }
+      
+      .workbench {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 2rem;
+        padding: 2rem;
+        flex: 1;
+      }
+      
+      .switch-stage { display: flex; flex-direction: column; gap: 1rem; }
+      .stage-header {
+        display: flex;
+        justify-content: space-between;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #1a3a52;
+        font-weight: bold;
+      }
+      
+      /* Chassis Canvas */
+      #switch-model {
+        position: relative;
+        background: #0f1e2e;
+        border: 2px solid #1a3a52;
+        border-radius: 8px;
+        padding: 1rem;
+        min-height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      
+      .chassis-canvas {
+        border: 1px solid #2a5a8a;
+        border-radius: 4px;
+        background: #061018;
+        display: block;
+        max-width: 100%;
+        height: auto;
+      }
+      
+      #switch-interior {
+        display: none;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #061018;
+        border: 2px solid #2a5a8a;
+        border-radius: 4px;
+        text-align: center;
+      }
+      
+      .component-node {
+        padding: 0.5rem 1rem;
+        margin: 0.5rem;
+        background: #1a3a52;
+        color: #e0e0e0;
+        border: 2px solid #2a5a8a;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+      }
+      .component-node.healthy { background: #2d5a3d; border-color: #7dff7d; color: #7dff7d; }
+      .component-node.warning { background: #5a4a2d; border-color: #ffd700; color: #ffd700; }
+      .component-node.critical { background: #5a2d2d; border-color: #ff7d7d; color: #ff7d7d; }
+      .component-node.unknown { background: #1a3a52; border-color: #2a5a8a; color: #b0b0b0; }
+      .component-node:disabled { opacity: 0.5; cursor: not-allowed; }
+      
+      .component-detail {
+        background: #0f1e2e;
+        border: 1px solid #1a3a52;
+        padding: 1.5rem;
+        border-radius: 8px;
+      }
+      
+      .detail-title { cursor: pointer; }
+      .detail-title:hover { opacity: 0.8; }
+      .detail-icon { font-size: 1.5rem; margin-right: 0.5rem; }
+      .detail-status {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 3px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin-top: 0.5rem;
+      }
+      .detail-status.healthy { background: #2d5a3d; color: #7dff7d; }
+      .detail-status.warning { background: #5a4a2d; color: #ffd700; }
+      .detail-status.critical { background: #5a2d2d; color: #ff7d7d; }
+      .detail-status.unknown { background: #1a3a52; color: #b0b0b0; }
+      
+      .health-strip {
+        padding: 1.5rem 2rem;
+        background: #0f1e2e;
+        border-top: 1px solid #1a3a52;
+      }
+      
+      .health-rail {
+        display: flex;
+        gap: 0.25rem;
+        margin: 1rem 0;
+      }
+      
+      .rail-node {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+        background: #1a3a52;
+        border: 1px solid #2a5a8a;
+      }
+      .rail-node.healthy { background: #7dff7d; }
+      .rail-node.warning { background: #ffd700; }
+      .rail-node.critical { background: #ff7d7d; }
+      .rail-node.unknown { background: #666; }
+      .rail-node.latest { box-shadow: 0 0 8px currentColor; }
+      
+      .dashboard-alert {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #5a2d2d;
+        border-left: 4px solid #ff7d7d;
+        border-radius: 4px;
+        color: #ff7d7d;
+      }
+      
+      .eyebrow { font-size: 0.8rem; text-transform: uppercase; color: #8a8a8a; }
+      h2 { margin-bottom: 1rem; }
+      .form-message { margin-top: 1rem; }
+    </style>
+  </head>
+  <body>
+    <main class="app-shell">
+      <!-- Connection Screen -->
+      <section id="connect-screen" class="connect-screen">
+        <div class="connect-copy">
+          <h1>Switch Health Console</h1>
+          <p class="eyebrow">Real-time network switch monitoring</p>
+          <p>Connect to a Cisco IOS or Huawei VRP switch with the shared login configured.</p>
+        </div>
+        <form id="connect-form" class="connect-form">
+          <label for="switch-address">Switch IP address</label>
+          <input id="switch-address" name="address" type="text" inputmode="decimal" autocomplete="off" placeholder="192.168.1.1" required />
+          <label for="vendor-preference">Vendor</label>
+          <select id="vendor-preference" name="vendor">
+            <option value="auto">Detect automatically</option>
+            <option value="cisco">Cisco IOS</option>
+            <option value="huawei">Huawei VRP</option>
+          </select>
+          <button type="submit">Connect to switch →</button>
+          <p id="connect-error" class="form-message" hidden role="alert"></p>
+        </form>
+      </section>
+
+      <!-- Dashboard -->
+      <section id="dashboard" class="dashboard" hidden>
+        <header class="topbar">
+          <div>
+            <span id="poll-state" class="poll-state">Preparing check</span>
+          </div>
+          <div class="top-actions">
+            <button id="check-button" class="quiet-button" type="button">Run check</button>
+            <button id="disconnect-button" class="quiet-button" type="button">Change switch</button>
+          </div>
+        </header>
+
+        <section class="device-heading">
+          <h1 id="device-name">Connecting…</h1>
+          <div id="vendor-lockup" class="vendor-lockup" data-vendor="auto">
+            <strong id="vendor-name">Detecting vendor</strong>
+            <span id="health-word">Awaiting telemetry</span>
+          </div>
+        </section>
+
+        <section class="workbench">
+          <div class="switch-stage">
+            <div class="stage-header">
+              <span>Interactive Chassis</span>
+              <span id="health-word-header">Awaiting telemetry</span>
+            </div>
+            <div id="switch-model" data-vendor="auto">
+              <canvas id="switch-chassis-canvas" class="chassis-canvas" width="600" height="400"></canvas>
+              <div id="switch-interior">
+                <canvas id="chassis-interior-canvas" class="chassis-canvas" width="600" height="400"></canvas>
+                <p id="model-caption" style="margin-top: 1rem; font-size: 0.9rem; color: #8a8a8a;">Inside the chassis: click components to inspect their live status.</p>
+              </div>
+              <button id="chassis-toggle" style="position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10;" aria-expanded="false" aria-label="Open switch chassis"></button>
+            </div>
+            <p id="model-caption" style="text-align: center; color: #8a8a8a; margin-top: 1rem;">Click the chassis to open and inspect components.</p>
+          </div>
+
+          <aside id="component-detail" class="component-detail">
+            <p class="eyebrow">Selected component</p>
+            <div class="detail-title"><span id="detail-icon">◌</span><h2 id="detail-label">Processor</h2></div>
+            <p id="detail-value" style="margin: 1rem 0; font-size: 1.2rem; font-weight: bold;">Waiting</p>
+            <span id="detail-status" class="detail-status unknown">Awaiting data</span>
+            <p id="detail-copy" style="margin-top: 1rem; color: #b0b0b0;">Connect to a switch to read this component.</p>
+            <div style="border-bottom: 1px solid #1a3a52; margin: 1rem 0;"></div>
+            <p id="last-checked" style="margin: 1rem 0; font-size: 0.9rem; color: #8a8a8a;">No completed health check</p>
+            
+            <div style="margin-top: 2rem; padding: 1rem; background: #061018; border-radius: 4px;">
+              <p class="eyebrow">Component Nodes</p>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
+                <button class="component-node" data-component="cpu" type="button" aria-pressed="true">CPU</button>
+                <button class="component-node" data-component="memory" type="button" aria-pressed="false">Memory</button>
+                <button class="component-node" data-component="fans" type="button" aria-pressed="false">Fans</button>
+                <button class="component-node" data-component="power" type="button" aria-pressed="false">Power</button>
+                <button class="component-node" data-component="thermal" type="button" aria-pressed="false">Thermal</button>
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        <section class="health-strip">
+          <div><span class="eyebrow">Health rail</span><strong>Recent checks</strong></div>
+          <div id="health-rail" class="health-rail"></div>
+          <p id="check-cadence">Polling cadence: —</p>
+        </section>
+        
+        <div id="dashboard-alert" hidden role="alert"></div>
+      </section>
+    </main>
+    
+    <script src="/app_enhanced.js"></script>
+  </body>
+</html>
