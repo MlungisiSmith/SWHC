@@ -17,8 +17,8 @@ from netmiko import ConnectHandler, NetmikoAuthenticationException, NetmikoTimeo
 # every Cisco and Huawei switch that it connects to.
 # Load from environment variables for security.
 USERNAME = os.getenv("SWITCH_USERNAME", "networks")
-PASSWORD = os.getenv("SWITCH_PASSWORD", "w00Lw0rTh$")
-ENABLE_SECRET = os.getenv("SWITCH_ENABLE_SECRET", "w00Lw0rTh$")
+PASSWORD = os.getenv("SWITCH_PASSWORD")
+ENABLE_SECRET = os.getenv("SWITCH_ENABLE_SECRET")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL", "")
 INTERVAL_SECONDS = int(os.getenv("CHECK_INTERVAL_SECONDS", "30"))
 CONNECTION_TIMEOUT = 15

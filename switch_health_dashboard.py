@@ -38,9 +38,9 @@ CHECK_INTERVAL = max(10, INTERVAL_SECONDS)
 HISTORY_SIZE = 36
 WEB_ROOT = Path(__file__).with_name("switch_health_web")
 COMPONENTS = ("cpu", "memory", "fans", "power", "thermal")
-USERNAME = "networks"
-PASSWORD = "w00Lw0rTh$"
-ENABLE_SECRET = "w00Lw0rTh$"
+USERNAME = os.getenv("SWITCH_USERNAME", "networks")
+PASSWORD = os.getenv("SWITCH_PASSWORD")
+ENABLE_SECRET = os.getenv("SWITCH_ENABLE_SECRET")
 
 state_lock = threading.Lock()
 history: deque[dict[str, Any]] = deque(maxlen=HISTORY_SIZE)
