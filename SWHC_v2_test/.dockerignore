@@ -19,5 +19,3 @@ build
 .pytest_cache
 .venv
 venv
-backup_v1
-SWHC_v2_test
